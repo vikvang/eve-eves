@@ -10,17 +10,15 @@ import {
 } from "../../../lib/github/git-remote.js";
 
 /**
- * Fetches the branch under review and checks it out in the reviewer's
- * sandbox.
+ * Fetches the branch under playtest and checks it out in the player sandbox.
  *
  * @remarks
  * The fetch targets the factory repository's URL literally with a credential
- * brokered at the sandbox firewall (never entering the sandbox), mirroring
- * the implementer's tools. `validateBranch` bounds what can be interpolated
- * into the git command line.
+ * brokered at the sandbox firewall (never entering the sandbox). `validateBranch`
+ * bounds what can be interpolated into the git command line.
  */
 export default defineTool({
-  description: `Fetch the branch under review from the factory repository and check it out in ${REPO_DIR}. Run this first, then read the real diff against the base branch.`,
+  description: `Fetch the branch under playtest from the factory repository and check it out in ${REPO_DIR}. Run this first, then run_playtest.`,
   async execute(input, ctx) {
     const refusal = validateBranch(input.branch);
     if (refusal) {
@@ -57,6 +55,6 @@ export default defineTool({
     branch: z
       .string()
       .min(1)
-      .describe("The pushed branch to fetch and check out for review."),
+      .describe("The pushed branch to fetch and check out for playtest."),
   }),
 });

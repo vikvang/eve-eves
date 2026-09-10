@@ -77,8 +77,8 @@ export function factoryRevalidationKey(): string {
 }
 
 /**
- * Template-scoped bootstrap shared by the analyst, implementer, and reviewer
- * sandboxes: clone the factory repository and run its setup command.
+ * Template-scoped bootstrap shared by the implementer and player sandboxes:
+ * clone the factory repository and run its setup command.
  *
  * @remarks
  * - Runs once per template build, so the clone and dependency install are

@@ -11,6 +11,7 @@ export default defineEval({
     );
     t.succeeded();
     t.calledSubagent("implementer", { count: 0 });
+    t.calledSubagent("player", { count: 0 });
     for (const tool of WRITE_TOOLS) {
       t.notCalledTool(tool);
     }

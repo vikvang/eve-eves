@@ -2,12 +2,9 @@
 // so routing, credentials, and fallbacks stay on the gateway and no provider SDK is wired in.
 // Each agent.ts reads its entry here (model: MODELS.<agent>) instead of hardcoding a string.
 export const MODELS = {
-  analyst: "openai/gpt-5.6-terra-fast",
-  classifier: "openai/gpt-5.6-terra-fast",
-  implementer: "anthropic/claude-fable-5", // the station that writes the code gets the strongest coding model
+  implementer: "anthropic/claude-fable-5", // strongest coding model; different vendor than player
   orchestrator: "openai/gpt-5.6-terra-fast",
-  researcher: "openai/gpt-5.6-terra-fast",
-  reviewer: "openai/gpt-5.6-terra-fast", // different vendor than implementer on purpose: independent review
+  player: "openai/gpt-5.6-terra-fast", // independent playtest verdict; keep on a different vendor than implementer
 } as const;
 
 export type FactoryAgent = keyof typeof MODELS;

@@ -1,16 +1,15 @@
 import type { SessionAuthContext } from "eve/context";
 
 /**
- * Constructed principal for unattended factory runs (an issue labeled
- * `factory`).
+ * Constructed principal for unattended factory runs.
  *
  * @remarks
- * Real GitHub actors project as numeric `github:<id>` principals, so this
- * fixed login can never collide with one. The GitHub channel stamps it at
- * dispatch; the approval policies deny it everything except labels, progress
- * comments on its own intake issue, closing or reopening issues, and draft
- * pull requests, because an unattended turn has nobody to answer an approval
- * card and would park forever.
+ * Kept for the approval policies and any future autonomous intake. The game
+ * factory's only integration surface is the eve chat channel, so runs today
+ * are always attended: a person is on the other end of the chat, and approval
+ * cards park on that chat instead of stranding a webhook turn. Real GitHub
+ * actors project as numeric `github:<id>` principals, so this fixed login can
+ * never collide with one.
  */
 export const AUTONOMOUS_PRINCIPAL = "github:foreman-factory";
 
@@ -18,11 +17,13 @@ export const AUTONOMOUS_PRINCIPAL = "github:foreman-factory";
  * Auth attribute marking a caller the dispatching channel decided to trust.
  *
  * @remarks
- * Trust is decided once, at dispatch, on the signed webhook: the GitHub
- * channel stamps it only for commenters whose `author_association` is
- * OWNER, MEMBER, or COLLABORATOR; the Linear channel stamps it for every
- * Agent Session, because workspace membership is the gate there. Nothing
- * downstream re-derives trust from model-readable content.
+ * Trust is decided once, at dispatch. The eve chat channel intentionally does
+ * not stamp this by default: chat sessions stay untrusted so reversible GitHub
+ * writes and factory-brain updates park on an approval card the person can
+ * answer in chat. Draft pull requests still run without a card
+ * (`createPullRequestPolicy` with `draft: true`). Stamp it only when a future
+ * channel proves the caller at the edge (for example a signed webhook from a
+ * known maintainer).
  */
 export const TRUSTED_ATTRIBUTE = "trusted";
 
@@ -45,22 +46,15 @@ export function stampTrusted(auth: SessionAuthContext): SessionAuthContext {
  * from.
  *
  * @remarks
- * Stamped by {@link stampAutonomous} at dispatch, on the signed webhook, so
- * the approval policies can scope an unattended run's comment writes to its
- * own intake thread. Attribute values are strings; read it back through
- * {@link intakeIssueNumber}.
+ * Stamped by {@link stampAutonomous} at dispatch. Unused while the only intake
+ * is the eve chat channel; kept so approval policies that scope autonomous
+ * comments remain valid if autonomous intake returns.
  */
 export const INTAKE_ISSUE_ATTRIBUTE = "intakeIssue";
 
 /**
  * Rewrites a channel auth into the unattended factory principal, carrying the
  * intake issue number.
- *
- * @remarks
- * The GitHub channel calls this when the factory label is applied: the
- * webhook sender's identity is replaced (the turn must never run as the
- * labeler), and the issue number is stamped so `commentPolicy` can let the
- * run narrate on its own thread and nowhere else.
  */
 export function stampAutonomous(
   auth: SessionAuthContext,
@@ -119,9 +113,8 @@ export function isTrusted(auth: SessionAuthContext | null): boolean {
  *
  * @remarks
  * No schedule ships in this template, but the approval policies already
- * recognize the principal so a schedule added later (see the README's
- * extending section) inherits sensible write behavior: reversible writes run,
- * anything that ships still parks for a person. It is never a user identity.
+ * recognize the principal so a schedule added later inherits sensible write
+ * behavior: reversible writes run, anything that ships still parks for a person.
  */
 export function isScheduleAppAuth(auth: SessionAuthContext | null): boolean {
   return (
