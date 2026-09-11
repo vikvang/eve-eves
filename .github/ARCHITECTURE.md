@@ -121,3 +121,13 @@ No application database. No Linear integration.
 - **Task mode:** child with `outputSchema`; structured output, no parking.
 - **Game brief / playtest report:** handoff artifact kinds under `artifacts/`.
 - **Test seam:** `window.__game` / `window.__ready` / `window.__seed` installed by games repo `installSeam`.
+
+## Games monorepo
+
+This repository is also the games target (`FACTORY_REPO` typically points at itself). Layout:
+
+- `games/_kit` publishes `@games/kit` (`createRetroGame`, Sweetie-16, `playSfx`, `installSeam`, `spriteFromGrid`, seeded RNG).
+- `games/_template` is the playable scaffold copied by `pnpm new-game <slug>`.
+- `games/_playtest` is the Playwright harness behind `pnpm playtest <slug>`.
+- `games/_site` + `pnpm build:games` produce static output under `games/dist/`; `games/vercel.json` serves it.
+- Title scenes expose `window.__startGame` for headless starts; screenshots land in `games/<slug>/playtest/`.

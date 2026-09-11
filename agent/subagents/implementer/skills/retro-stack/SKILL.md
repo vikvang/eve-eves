@@ -8,7 +8,7 @@ How to build a game in the factory's games repository. Follow the brief. Copy `_
 ## Repo layout
 
 ```text
-packages/retro-kit/     shared lib
+games/_kit/     shared lib
   createRetroGame()     kaplay wrapper (320x180, integer scale, crisp, letterbox)
   palette.ts            SWEETIE16 + helpers
   sfx.ts                ZzFX presets
@@ -25,8 +25,9 @@ games/<slug>/
   src/entities/*.ts
   public/sprites/*.png  optional
   playtest/             report.json + screenshots (from harness)
-playtest/               harness entry
-dist/<slug>/            build output
+games/_playtest/        harness (pnpm playtest)
+games/_site/            static index of built games
+games/dist/<slug>/      build output
 ```
 
 Root scripts (run from repo root):
@@ -35,7 +36,7 @@ Root scripts (run from repo root):
 - `pnpm typecheck`
 - `pnpm check` / `pnpm fix`
 - `pnpm test` (Vitest, pure logic)
-- `pnpm build` (every game into `dist/<slug>/`, plus `dist/index.html` listing)
+- `pnpm build:games` (every game into `games/dist/<slug>/`, plus site index)
 - `pnpm playtest <slug> [--genre platformer|shmup|arcade|puzzle]`
 
 Node 24, pnpm workspace, TypeScript strict, Vite, Kaplay 4000.x, Biome via ultracite, Vitest, Playwright chromium. No backend, no persistence, no audio files.
@@ -49,11 +50,11 @@ Node 24, pnpm workspace, TypeScript strict, Vite, Kaplay 4000.x, Biome via ultra
 
 ## createRetroGame
 
-Bootstrap only through retro-kit:
+Bootstrap only through `@games/kit`:
 
 ```ts
-import { createRetroGame } from "@factory/retro-kit"; // import path as in _template
-import { SWEETIE16 } from "@factory/retro-kit/palette"; // match template exports
+import { createRetroGame } from "@games/kit"; // import path as in _template
+import { SWEETIE16 } from "@games/kit"; // match template exports
 
 const k = createRetroGame({
   background: SWEETIE16[0], // brief background role
@@ -85,7 +86,7 @@ Levels live in `src/levels/*.ts` as string row arrays.
 
 Conventions:
 - Visible playfield at 320x180 is 20 tiles wide by 11 tiles tall at 16px.
-- Wider or taller stages scroll with `camPos` following the player.
+- Wider or taller stages scroll with `setCamPos` following the player (Kaplay 4000; not `camPos`).
 - One legend maps characters to solid, hazard, pickup, spawn, exit, empty.
 
 Example legend (adapt per game):
@@ -117,10 +118,12 @@ installSeam(k, () => ({
 ```
 
 Requirements:
-- `window.__game` is refreshed every frame with the object above.
+- `window.__game` is refreshed every frame with the object above (kit uses rAF).
 - `window.__ready` is a Promise resolved after assets are loaded and the title scene is showing.
+- Title scene must also set `window.__startGame` to the same start function Enter uses, so headless playtests can begin reliably.
 - `state` must match the real screen: title before start, playing during the run, gameover/win on terminal screens.
 - Score, lives, level are numbers the harness can assert on.
+- `createRetroGame` creates an explicit canvas; do not call raw `kaplay()`.
 
 ### window.__seed
 
@@ -128,7 +131,7 @@ If `window.__seed` is a number when the game boots, seed all randomness from it 
 
 ## ZzFX presets
 
-Use retro-kit `sfx` helpers only. Named presets: `jump`, `hit`, `pickup`, `shoot`, `explode`, `select`, `win`, `lose`. Map brief audio cues 1:1. Never add `.mp3`/`.wav` files.
+Use `@games/kit` `playSfx` / `SFX_PRESETS` helpers only. Named presets: `jump`, `hit`, `pickup`, `shoot`, `explode`, `select`, `win`, `lose`. Map brief audio cues 1:1. Never add `.mp3`/`.wav` files.
 
 ## Kaplay 4000 shapes (short)
 
@@ -154,12 +157,12 @@ k.onKeyDown("left", () => { player.move(-speed, 0); });
 player.onCollide("coin", (c) => {
   k.destroy(c);
   score += 10;
-  sfx.pickup();
+  playSfx("pickup");
 });
 
 // camera + juice
 k.onUpdate(() => {
-  k.camPos(player.pos.x, 90);
+  k.setCamPos(player.pos.x, 90);
 });
 k.shake(4);
 k.wait(0.5, () => k.go("gameover"));
@@ -187,7 +190,7 @@ A game is done only when all of these are green from repo root:
 1. `pnpm typecheck`
 2. `pnpm check`
 3. `pnpm test`
-4. `pnpm build` (produces `dist/<slug>/`)
+4. `pnpm build:games` (produces `games/dist/<slug>/`)
 5. `pnpm playtest <slug> [--genre ...]` exit 0, `games/<slug>/playtest/report.json` has `passed: true`, no `consoleErrors`
 
 Also required:
@@ -208,4 +211,4 @@ Record exact commands and outcomes. If playtest cannot run in the environment, s
 7. Off-palette colors or smoothed scaling.
 8. Silent collisions: every hazard/pickup/start needs SFX or shake/flash.
 9. Ignoring `window.__seed`, making playtests flake.
-10. Large refactors of retro-kit or the harness. Game work stays under `games/<slug>/` unless the brief requires a shared fix (then keep it minimal and note it).
+10. Large refactors of `@games/kit` or the harness. Game work stays under `games/<slug>/` unless the brief requires a shared fix (then keep it minimal and note it).

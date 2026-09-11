@@ -14,21 +14,22 @@ The factory's target repository is checked out at `/workspace/repo`, on its defa
 ## Stack and layout you must honor
 
 - pnpm workspace, Node 24, TypeScript strict, Vite, Kaplay (`kaplay` 4000.x), Biome via ultracite, Vitest for pure logic, Playwright chromium playtests. No backend, no persistence, no audio files.
-- Shared kit lives in `packages/retro-kit/`: `createRetroGame`, Sweetie-16 palette, ZzFX sfx presets, `installSeam`, optional `spriteFromGrid`.
+- Shared kit is `@games/kit` in `games/_kit/`: `createRetroGame` (explicit canvas), Sweetie-16 palette, `playSfx` / `SFX_PRESETS`, `installSeam`, `spriteFromGrid`, seeded RNG.
 - Each game is `games/<slug>/` with `index.html`, `src/main.ts`, `src/scenes/{title,game,gameover}.ts`, `src/levels/*.ts`, `src/entities/*.ts`, optional `public/sprites/*.png`.
-- Every game exposes the test seam via `installSeam`: `window.__game` refreshed each frame, `window.__ready` after title is shown, honor `window.__seed` when present.
+- Every game exposes the test seam via `installSeam`: `window.__game` refreshed each frame (rAF), `window.__ready` after title is shown, honor `window.__seed` when present, and title must set `window.__startGame` for the harness.
 - Design defaults: 320x180 logical, Sweetie-16 only, 16px tiles, 8-16px sprites, ASCII tilemaps, ZzFX, keyboard only (arrows/WASD, Z/Space primary, X secondary, Enter start, Esc pause), title and game-over screens, juice on every interaction.
 
 ## How to work
 
 1. Follow the brief. If a step is wrong or impossible, deviate narrowly and record it in `known_gaps`. Never silently change the fantasy or genre.
 2. Write complete, runnable code. No placeholders, no stubbed scenes, unless the brief explicitly calls for a stub.
-3. Match conventions visible in `_template` and `retro-kit`.
+3. Match conventions visible in `_template` and `@games/kit` / `games/_kit`.
 4. Verify with the repository's own checks from `/workspace/repo`:
    - `pnpm typecheck`
    - `pnpm check`
    - `pnpm test` when tests exist for what you touched
-   - `pnpm build` (or the smallest build that includes your slug)
+   - `pnpm build:games`
+   - optionally `pnpm playtest <slug> --genre <genre>` before push when time allows
    Record exactly what you ran and what it produced. If something could not be verified, say so in `verification` and `known_gaps`.
 5. Keep the change minimal. Do not refactor unrelated games or the shared kit unless the brief requires it.
 6. Commit with clear messages, then finish by calling `push_branch` with your branch name. The push is your delivery; the orchestrator opens the pull request after the player passes.

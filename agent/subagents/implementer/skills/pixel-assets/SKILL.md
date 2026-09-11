@@ -1,5 +1,5 @@
 ---
-description: "Author retro pixel sprites as ASCII grids mapped to Sweetie-16 via spriteFromGrid: sizes, animation frames, tile vs sprite rules, palette limits, ready-made grids (player, coin, spike, enemy, bullet, block, heart), and when a CC0 PNG pack is acceptable. Load when creating or revising game art under games/<slug>/ or shared retro-kit sprite helpers."
+description: "Author retro pixel sprites as ASCII grids mapped to Sweetie-16 via spriteFromGrid: sizes, animation frames, tile vs sprite rules, palette limits, ready-made grids (player, coin, spike, enemy, bullet, block, heart), and when a CC0 PNG pack is acceptable. Load when creating or revising game art under games/<slug>/ or shared `@games/kit` sprite helpers."
 ---
 # Pixel Assets
 
@@ -7,7 +7,7 @@ How to make readable low-res art for factory games. Default path: ASCII grids th
 
 ## spriteFromGrid
 
-retro-kit exposes `spriteFromGrid(grid, paletteMap)` which rasterizes a string grid into a data URL you pass to `loadSprite`.
+`@games/kit` exposes `spriteFromGrid(grid, paletteMap)` which rasterizes a string grid into a data URL you pass to `loadSprite`.
 
 ```ts
 const playerIdleUrl = spriteFromGrid(

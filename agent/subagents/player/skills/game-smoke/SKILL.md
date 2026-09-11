@@ -15,10 +15,10 @@ pnpm playtest <slug> --genre <platformer|shmup|arcade|puzzle>
 
 What it does:
 1. Builds the game
-2. Serves `dist/<slug>` on a free port
+2. Serves `games/dist/<slug>` on a free port
 3. Launches headless Chromium
 4. Waits for `window.__ready`
-5. Runs the genre script (title -> start -> ~15s of scripted input -> expect state transitions)
+5. Runs the genre script (waits for `__ready`, calls `window.__startGame` when present, then ~15s of scripted input -> expect state transitions)
 6. Writes `games/<slug>/playtest/{title,gameplay,end}.png`
 7. Writes `games/<slug>/playtest/report.json`
 8. Exits non-zero if any check failed or any console error occurred
@@ -46,7 +46,7 @@ Exact ids may vary by harness version; map by meaning.
 Shared:
 - Ready: `__ready` resolved, no boot exception
 - Title: `state === "title"` (screenshot `title.png`)
-- Start: Enter (or brief start key) moves to `state === "playing"`
+- Start: harness calls `window.__startGame` (title must expose it) or presses Enter; `state === "playing"`
 - Terminal: within the script window, reach `gameover` or `win`, or hold `playing` with score/lives moving as the genre expects
 - Console: `consoleErrors` empty
 

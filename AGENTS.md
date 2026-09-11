@@ -12,11 +12,16 @@ The whole agent is defined under `agent/`. eve discovers capabilities from the f
 
 ```bash
 pnpm install        # install dependencies (Node 24.x)
+pnpm exec playwright install chromium  # browser binary for playtests
 pnpm dev            # eve dev — local TUI; run /model once to link a model provider
-pnpm typecheck      # tsc (TypeScript, no emit)
+pnpm typecheck      # tsc for agent + games/_kit + _template + _playtest
 pnpm check          # ultracite (Biome) lint + format check
 pnpm fix            # ultracite (Biome) auto-fix
-pnpm build          # eve build
+pnpm build          # eve build (agent)
+pnpm build:games    # Vite-build every game into games/dist/<slug>/
+pnpm test           # Vitest
+pnpm playtest <slug> [--genre platformer|shmup|arcade|puzzle]
+pnpm new-game <slug>
 pnpm eval           # eve eval — run the evals suite (see tags below; costs real tokens)
 eve deploy          # deploy to Vercel production (use this, not raw `vercel deploy`)
 npx eve info        # print the discovered surface + discovery diagnostics
@@ -70,7 +75,7 @@ pnpm validate       # check + typecheck + eve info in one command
 
 ## Games factory target (`games/`)
 
-Browser-only retro games live under `games/`. Shared kit package is `@games/kit`. See `games/README.md` and `games/AGENTS.md` if present.
+Browser-only retro games live under `games/`. Shared kit package is `@games/kit` (`games/_kit`). Harness is `games/_playtest`. Template is `games/_template`. Site package is `games/_site`. Build output is `games/dist/`. See `games/README.md` and `games/AGENTS.md`.
 
-Root scripts: `pnpm build:games`, `pnpm playtest <slug>`, `pnpm new-game <slug>`, `pnpm test`.
+Root scripts: `pnpm build:games`, `pnpm playtest <slug>`, `pnpm new-game <slug>`, `pnpm test`. Workspace packages: `games/_kit`, `games/_playtest`, `games/_site`, `games/*`, excluding `games/dist`. Kaplay is pinned on the 4000 alpha line used by the kit. Title scenes must expose `window.__startGame` for headless starts; seam uses rAF; camera uses `setCamPos`.
 
