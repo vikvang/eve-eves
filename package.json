@@ -12,15 +12,18 @@
   "scripts": {
     "build": "eve build",
     "build:games": "tsx scripts/games/build-all.ts",
+    "build:web": "pnpm run build && pnpm --filter @foreman/web build",
     "check": "ultracite check",
+    "deploy": "vercel deploy --prod",
     "dev": "eve dev",
+    "dev:web": "pnpm --filter @foreman/web dev",
     "eval": "eve eval",
     "fix": "ultracite fix",
     "new-game": "tsx scripts/games/new-game.ts",
     "playtest": "tsx games/_playtest/src/cli.ts",
     "start": "eve start",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p games/_kit/tsconfig.json --noEmit && tsc -p games/_template/tsconfig.json --noEmit && tsc -p games/_playtest/tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p games/_kit/tsconfig.json --noEmit && tsc -p games/_template/tsconfig.json --noEmit && tsc -p games/_playtest/tsconfig.json --noEmit && pnpm --filter @foreman/web typecheck",
     "validate": "pnpm run check && pnpm run typecheck && eve info"
   },
   "dependencies": {
@@ -39,6 +42,7 @@
     "tsx": "^4.20.5",
     "typescript": "7.0.2",
     "ultracite": "^7.10.5",
+    "vercel": "^50.0.0",
     "vite": "^7.1.5",
     "vitest": "^3.2.4"
   },

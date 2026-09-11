@@ -1,4 +1,5 @@
 packages:
+  - "web"
   - "games/_kit"
   - "games/_playtest"
   - "games/_site"

@@ -10,7 +10,7 @@ import { userPreferencesKey } from "#lib/user-preferences.js";
  * The Blob key is derived from the framework-resolved principal (`ctx.session.auth.current`),
  * never from model input, so a session can only ever read its own user's preferences. Returns
  * `found: false` with empty `preferences` when the user has none yet, or with a `note` when the
- * run has no user principal at all (unattended intake runs as a service principal) — both are
+ * run has no user principal at all (an anonymous browser or unattended intake run) — both are
  * normal states, not errors, so neither sets `error`. Authorization resolves from the ambient
  * Vercel OIDC credentials.
  */
@@ -32,7 +32,7 @@ export default defineTool({
     if (!key) {
       return {
         found: false,
-        note: "This run has no signed-in user, so per-user preferences don't apply. That is the normal state for unattended runs; proceed without them.",
+        note: "This run has no signed-in user, so per-user preferences do not apply. That is normal for anonymous browser and unattended runs; proceed without them.",
         preferences: "",
       };
     }
