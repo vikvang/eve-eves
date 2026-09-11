@@ -84,7 +84,7 @@ Channels are I/O boundaries. Tools run in the app runtime; station git and playt
 - **Vercel Blob**: user preferences, factory brain, handoff artifacts.
 - **Vercel Sandbox**: root + implementer + player clones of `FACTORY_REPO`.
 
-No application database. No Linear integration.
+No application database.
 
 ## External integrations
 
@@ -98,7 +98,7 @@ No application database. No Linear integration.
 ## Deployment & infrastructure
 
 - **Platform:** Vercel. Deploy with `eve deploy`.
-- **Connectors:** GitHub Connect only (no Linear). App needs contents/issues/pull requests on `FACTORY_REPO`.
+- **Connectors:** GitHub Connect only. App needs contents/issues/pull requests on `FACTORY_REPO`.
 - **Environment:** `GITHUB_CONNECTOR`, `FACTORY_REPO` (required), optional `FACTORY_SETUP_COMMAND`, `FACTORY_BRANCH_PREFIX`, `FACTORY_BOT_NAME`.
 - **Local development:** `pnpm dev`; chat is untrusted so GitHub writes wait for approval in the TUI.
 
