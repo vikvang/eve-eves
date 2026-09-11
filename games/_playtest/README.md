@@ -1,10 +1,9 @@
-# _playtest
+# @games/playtest
 
-Headless Playwright harness. Invoked as `pnpm playtest <slug>`.
+Headless chromium playtest harness. Invoked from the repo root:
 
-Builds the game, serves it, drives keyboard input against `window.__game`, writes:
+```bash
+pnpm playtest <slug> [--genre platformer|shmup|arcade|puzzle]
+```
 
-- `games/<slug>/playtest/title.png`
-- `games/<slug>/playtest/gameplay.png`
-- `games/<slug>/playtest/end.png`
-- `games/<slug>/playtest/report.json`
+Builds the game into `games/dist/<slug>`, serves it, waits for `window.__ready`, runs the genre script, writes `games/<slug>/playtest/{title,gameplay,end}.png` and `report.json`. Exits non-zero on failed checks or console errors.

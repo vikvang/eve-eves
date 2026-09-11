@@ -1,3 +1,9 @@
+packages:
+  - "games/_kit"
+  - "games/_playtest"
+  - "games/_site"
+  - "games/*"
+  - "!games/dist"
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:

@@ -1,15 +1,5 @@
 # _template
 
-Reference platformer. Copy this directory to `games/<slug>/` when starting a new game.
+Reference platformer. Copy with `pnpm new-game <slug>`.
 
-Planned shape:
-
-```
-index.html
-src/main.ts
-src/scenes/title.ts
-src/scenes/game.ts
-src/scenes/gameover.ts
-src/levels/
-src/entities/
-```
+Includes title/game/gameover scenes, two ASCII levels, coins, one enemy type, lives, score, ZzFX juice, and sprites generated from ASCII grids (no binary assets).

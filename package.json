@@ -11,12 +11,16 @@
   },
   "scripts": {
     "build": "eve build",
+    "build:games": "tsx scripts/games/build-all.ts",
     "check": "ultracite check",
     "dev": "eve dev",
     "eval": "eve eval",
     "fix": "ultracite fix",
+    "new-game": "tsx scripts/games/new-game.ts",
+    "playtest": "tsx games/_playtest/src/cli.ts",
     "start": "eve start",
-    "typecheck": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p games/_kit/tsconfig.json --noEmit && tsc -p games/_template/tsconfig.json --noEmit && tsc -p games/_playtest/tsconfig.json --noEmit",
     "validate": "pnpm run check && pnpm run typecheck && eve info"
   },
   "dependencies": {
@@ -29,9 +33,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.9",
+    "@playwright/test": "^1.55.0",
     "@types/node": "~24.13.3",
+    "playwright": "^1.55.0",
+    "tsx": "^4.20.5",
     "typescript": "7.0.2",
-    "ultracite": "^7.10.5"
+    "ultracite": "^7.10.5",
+    "vite": "^7.1.5",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": "24.x"

@@ -1,11 +1,7 @@
-# _kit
+# @games/kit
 
-Shared runtime for every game in this repo. Not a playable game.
+Shared retro runtime for every game in this monorepo.
 
-Planned modules:
+Exports: `createRetroGame`, `SWEETIE16`, `playSfx`, `installSeam`, `spriteFromGrid`, `createSeededRandom`, `TILE_SIZE`, logical 320x180 helpers.
 
-- `createRetroGame` Kaplay init at 320x180, integer scale, crisp pixels, letterbox
-- `palette.ts` Sweetie-16
-- `sfx.ts` ZzFX presets
-- `seam.ts` `installSeam` for `window.__game` / `window.__ready`
-- `sprite.ts` `spriteFromGrid` so games ship no binary assets
+Import as `@games/kit`.

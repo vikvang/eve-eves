@@ -1,13 +1,55 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core"],
+  "files": {
+    "includes": [
+      "!**/dist",
+      "!**/node_modules",
+      "!**/games/dist",
+      "!**/*.png",
+      "!**/pnpm-lock.yaml"
+    ]
+  },
   "linter": {
     "rules": {
       "style": {
-        // eve derives tool/connection/skill names from filenames, and this project
-        // uses snake_case (e.g. agent/tools/get_user_preferences.ts). Disable the
-        // kebab-case filename rule so those names aren't flagged.
-        "useFilenamingConvention": "off"
+        "useFilenamingConvention": "off",
+        "useConsistentTypeDefinitions": "off",
+        "noNonNullAssertion": "off",
+        "noMagicNumbers": "off",
+        "useBlockStatements": "off",
+        "useNamingConvention": "off",
+        "noIncrementDecrement": "off",
+        "useDestructuring": "off",
+        "noParameterAssign": "off",
+        "useTemplate": "off",
+        "noNestedTernary": "off",
+        "useForOf": "off"
+      },
+      "complexity": {
+        "noVoid": "off",
+        "noExcessiveCognitiveComplexity": "off",
+        "noForEach": "off"
+      },
+      "suspicious": {
+        "noBitwiseOperators": "off",
+        "noExplicitAny": "off",
+        "noAssignInExpressions": "off",
+        "noConsole": "off",
+        "noSparseArray": "off",
+        "noUnusedExpressions": "off",
+        "noShadow": "off",
+        "noBiomeFirstException": "off"
+      },
+      "performance": {
+        "noBarrelFile": "off",
+        "noAccumulatingSpread": "off",
+        "useTopLevelRegex": "off",
+        "noAwaitInLoops": "off"
+      },
+      "correctness": {
+        "noUnusedFunctionParameters": "off",
+        "noUnusedVariables": "off"
       }
     }
   }

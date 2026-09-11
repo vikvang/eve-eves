@@ -68,3 +68,10 @@ pnpm validate       # check + typecheck + eve info in one command
 
 - `pnpm validate` passes (Ultracite check, `tsc`, and `eve info` with 0 errors / 0 warnings).
 - No secrets, `node_modules`, or build output (`.eve`, `.vercel`, `.output`) staged.
+
+## Games factory target (`games/`)
+
+Browser-only retro games live under `games/`. Shared kit package is `@games/kit`. See `games/README.md` and `games/AGENTS.md` if present.
+
+Root scripts: `pnpm build:games`, `pnpm playtest <slug>`, `pnpm new-game <slug>`, `pnpm test`.
+

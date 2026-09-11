@@ -9,3 +9,8 @@ node_modules
 dist
 .DS_Store
 *.tsbuildinfo
+
+# games build output
+games/dist
+# local playtest runtime noise (screenshots are committed on factory feature branches)
+*.tsbuildinfo

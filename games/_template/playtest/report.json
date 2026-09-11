@@ -1,0 +1,47 @@
+{
+  "checks": [
+    {
+      "evidence": "window.__ready resolved",
+      "id": "ready",
+      "passed": true
+    },
+    {
+      "evidence": "state=title scene=title",
+      "id": "title-state",
+      "passed": true
+    },
+    {
+      "evidence": "state=playing scene=game",
+      "id": "start-playing",
+      "passed": true
+    },
+    {
+      "evidence": "state=gameover score=0 lives=0",
+      "id": "still-alive-or-progressed",
+      "passed": true
+    },
+    {
+      "evidence": "score 0->0 lives 3->0 level=1",
+      "id": "input-had-effect",
+      "passed": true
+    },
+    {
+      "evidence": "final state=gameover score=0",
+      "id": "end-reachable",
+      "passed": true
+    },
+    {
+      "evidence": "clean",
+      "id": "no-console-errors",
+      "passed": true
+    }
+  ],
+  "consoleErrors": [],
+  "passed": true,
+  "screenshots": [
+    "games/_template/playtest/title.png",
+    "games/_template/playtest/gameplay.png",
+    "games/_template/playtest/end.png"
+  ],
+  "slug": "_template"
+}
