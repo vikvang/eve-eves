@@ -1,5 +1,3 @@
-import { connect } from "@vercel/connect/eve";
-
 /**
  * Reads a required environment variable, throwing if it is unset so
  * misconfiguration fails fast instead of surfacing mid-request.
@@ -32,7 +30,7 @@ export function requireEnv(name: string, example: string): string {
  * the GitHub extension's default context, the station sandboxes' clone, and
  * the push URL.
  */
-export const FACTORY_REPO = requireEnv("FACTORY_REPO", "acme/widgets");
+export const FACTORY_REPO = requireEnv("FACTORY_REPO", "acme/retro-games");
 
 // GitHub's own naming rules: owner is alphanumeric with inner hyphens, repo
 // adds dots and underscores. Catching a malformed value here fails discovery
@@ -42,7 +40,7 @@ const FACTORY_REPO_PATTERN =
 
 if (!FACTORY_REPO_PATTERN.test(FACTORY_REPO)) {
   throw new Error(
-    `FACTORY_REPO must reference an existing GitHub repository in owner/repo format (e.g. 'acme/widgets'), got '${FACTORY_REPO}'.`
+    `FACTORY_REPO must reference an existing GitHub repository in owner/repo format (e.g. 'acme/retro-games'), got '${FACTORY_REPO}'.`
   );
 }
 
@@ -55,54 +53,12 @@ const [factoryOwner = "", factoryRepoName = ""] = FACTORY_REPO.split("/");
 export const factoryRepo = { owner: factoryOwner, repo: factoryRepoName };
 
 /**
- * The GitHub label that hands an issue to the factory. Overridable with the
- * `FACTORY_LABEL` environment variable.
- *
- * @remarks
- * Applying it requires triage permission on the repository, so the trigger is
- * maintainer-initiated even though the resulting run is unattended.
- */
-export const FACTORY_LABEL = process.env.FACTORY_LABEL ?? "factory";
-
-/**
  * Branch-name prefix for the factory's own feature branches. Overridable
  * with the `FACTORY_BRANCH_PREFIX` environment variable.
  *
  * @remarks
- * The implementer names its branches `factory/<type>-<slug>`; the GitHub
- * channel uses the prefix to recognize the factory's own pull requests, so
- * the red-CI fix loop never runs on branches people pushed. The implementer's
- * instructions carry the default prefix as prose, so an override should keep
- * them in sync (`agent/subagents/implementer/instructions.md`).
+ * The implementer names its branches `factory/game-<slug>`. Keep the prefix
+ * in sync with `agent/subagents/implementer/instructions.md` if you override it.
  */
 export const FACTORY_BRANCH_PREFIX =
   process.env.FACTORY_BRANCH_PREFIX ?? "factory/";
-
-/**
- * Shared Linear authorization via Vercel Connect.
- *
- * Single source of truth for the Linear connector so every consumer — the
- * Linear MCP connection and any tool calling the GraphQL API directly —
- * shares one Linear installation and one set of scopes.
- *
- * @remarks
- * - App-scoped (`principalType: "app"`), so no per-user consent flow is
- *   required; tokens are minted for the installation itself.
- * - Tokens are requested per call via `ctx.getToken(linearAuth)`, cached per
- *   step by eve, and never exposed to the model.
- * - The connector UID comes from the `LINEAR_CONNECTOR` environment variable
- *   (e.g. `linear/foreman-agent`); the module throws at load time if it
- *   is not set.
- *
- * @example
- * ```ts
- * const { token } = await ctx.getToken(linearAuth);
- * ```
- */
-export const linearAuth = connect({
-  connector: requireEnv("LINEAR_CONNECTOR", "linear/foreman-agent"),
-  principalType: "app",
-  tokenParams: {
-    scopes: ["read", "write", "issues:create", "comments:create"],
-  },
-});

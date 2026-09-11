@@ -3,7 +3,7 @@ import { GITHUB_WRITE_TOOLS } from "./helpers.js";
 
 export default defineEval({
   description:
-    "A greeting doesn't spin up the factory line: the agent answers directly, delegates nothing to the implementer, and writes nothing to GitHub.",
+    "A greeting doesn't spin up the factory line: the agent answers directly, delegates nothing to the implementer or player, and writes nothing to GitHub.",
   tags: ["fast"],
   async test(t) {
     await t.send(
@@ -11,7 +11,7 @@ export default defineEval({
     );
     t.succeeded();
     t.calledSubagent("implementer", { count: 0 });
-    t.calledSubagent("reviewer", { count: 0 });
+    t.calledSubagent("player", { count: 0 });
     for (const tool of GITHUB_WRITE_TOOLS) {
       t.notCalledTool(tool);
     }

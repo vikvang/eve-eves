@@ -24,7 +24,7 @@ import { ARTIFACTS_PREFIX } from "../blob.js";
  * Maximum size of an artifact's Markdown body, in characters.
  *
  * @remarks
- * Generous enough for a full analysis or a long research memo, bounded so one call can't push an
+ * Generous enough for a full game brief or a long playtest memo, bounded so one call can't push an
  * unreasonable payload through the reader's context on the other side.
  *
  * @defaultValue 200_000
@@ -41,11 +41,11 @@ export const MAX_ARTIFACT_TITLE_LENGTH = 200;
  *
  * @remarks
  * A closed set rather than free text: the kind travels with the id into another station's
- * message, and a reader that knows it is holding an `analysis` treats it differently from
- * `research-notes`. Add a kind here when a new handoff shape appears rather than letting callers
+ * message, and a reader that knows it is holding a `game-brief` treats it differently from
+ * `playtest-report`. Add a kind here when a new handoff shape appears rather than letting callers
  * invent one.
  */
-export const ARTIFACT_KINDS = ["research-notes", "analysis"] as const;
+export const ARTIFACT_KINDS = ["game-brief", "playtest-report"] as const;
 
 /**
  * Characters allowed in the slug portion of an artifact id.
@@ -54,7 +54,7 @@ const SLUG_DISALLOWED = /[^a-z0-9]+/g;
 const SLUG_TRIM = /^-+|-+$/g;
 
 /**
- * Shape every artifact id must match: `<kind>-<slug>-<suffix>`, lowercase and hyphenated.
+ * Shape every artifact id must match: lowercase alphanumerics and hyphens only.
  *
  * @remarks
  * Anchored, with no dots or slashes permitted, so a validated id cannot traverse out of
@@ -70,11 +70,6 @@ const SUFFIX_LENGTH = 6;
 /**
  * Reduce a title to the slug portion of an id.
  *
- * @remarks
- * The length cap is applied before the trim, not after. Cutting a hyphenated slug at a fixed
- * offset regularly lands on a hyphen, and a trailing one would collide with the separator before
- * the random suffix to produce `--`, which {@link ARTIFACT_ID_PATTERN} rejects.
- *
  * @param title - Human-readable artifact title.
  * @returns A lowercase hyphenated slug, capped so ids stay readable.
  */
@@ -87,11 +82,6 @@ const slugify = (title: string): string =>
 
 /**
  * Build an id for a newly saved artifact.
- *
- * @remarks
- * Readable rather than opaque, because these ids show up in station messages and in logs, and
- * `analysis-dedupe-reset-emails-k3f9qz` is far easier to reason about than a bare UUID. The
- * random suffix keeps two analyses of the same work item from colliding.
  *
  * @param kind - One of {@link ARTIFACT_KINDS}.
  * @param title - Human-readable title the id is derived from.
@@ -107,11 +97,6 @@ export const artifactId = (kind: string, title: string): string => {
 
 /**
  * Map an artifact id to its Blob key.
- *
- * @remarks
- * Returns `null` for anything that fails {@link ARTIFACT_ID_PATTERN}, which is the guard that
- * keeps a model-supplied id inside the reserved namespace. Callers treat `null` as "not found"
- * rather than surfacing the distinction, so a probe learns nothing from the difference.
  *
  * @param id - Model-supplied artifact id.
  * @returns The Blob key, or `null` when the id is not a valid artifact id.

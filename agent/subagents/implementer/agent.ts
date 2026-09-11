@@ -2,70 +2,50 @@ import { defineAgent } from "eve";
 import { MODELS } from "../../lib/models.js";
 
 /**
- * Station 3: implementation.
+ * Implementation station for a retro game.
  *
  * @remarks
- * Executes the analyst's plan in its own checkout of the factory repository,
- * verifies the work with the repository's own checks, commits on a feature
- * branch, and pushes it with the `push_branch` tool. The push is the
- * station's only side effect and it is inert by construction: feature
- * branches only (main and master are refused in code), the credential is
- * brokered at the sandbox firewall, and a branch alone can't merge. The pull
- * request is opened later by the orchestrator, after review.
+ * Reads the game brief, scaffolds `games/<slug>/` from `_template`, implements
+ * the game, verifies with the repository's own checks, commits on
+ * `factory/game-<slug>`, and pushes with `push_branch`. The push is the
+ * station's only side effect and it is inert by construction: feature branches
+ * only, credential brokered at the sandbox firewall. The pull request is opened
+ * later by the orchestrator, after the player passes.
  */
 export default defineAgent({
   description:
-    "Execute an approved implementation plan in a checkout of the factory repository: " +
-    "write the code on a feature branch, run the repository's own checks, commit, and " +
-    "push the branch. Returns the branch name, per-file change summary, verification " +
-    "results, and deviations. The caller passes the work item, classification, and full " +
-    "analysis in the message, plus an artifact id when the analyst saved its full detail " +
-    "as one; on a revision run it also passes the existing branch and the reviewer's " +
-    "findings.",
+    "Implement a thin browser-only 2D retro game in the factory repository: " +
+    "scaffold games/<slug> from _template, code scenes and entities from the game brief, " +
+    "run typecheck/check/test/build, commit, and push factory/game-<slug>. Returns branch, " +
+    "slug, path, files changed, verification, and known gaps. The caller passes the prompt, " +
+    "slug, genre, and game-brief artifact id; on revision it also passes the branch and " +
+    "playtest findings.",
   model: MODELS.implementer,
   outputSchema: {
     additionalProperties: false,
     properties: {
-      base: {
-        description:
-          "The branch the work is based on, normally the repository's default branch.",
-        type: "string",
-      },
       branch: {
-        description: "The feature branch the work was committed and pushed to.",
+        description: "The feature branch pushed, e.g. factory/game-space-hop.",
         type: "string",
       },
-      change_summary: {
-        description: "What changed and why, per file.",
-        items: {
-          additionalProperties: false,
-          properties: {
-            change: {
-              description: "What changed in this file and why.",
-              type: "string",
-            },
-            path: { description: "The file path.", type: "string" },
-          },
-          required: ["path", "change"],
-          type: "object",
-        },
-        type: "array",
-      },
-      deviations: {
-        description:
-          "Departures from the plan, each with its reason; empty when the plan held.",
+      files_changed: {
+        description: "Paths touched relative to the repository root.",
         items: { type: "string" },
         type: "array",
       },
-      known_limitations: {
-        description: "Anything the reviewer should scrutinize.",
+      game_path: {
+        description: "Path to the game app, e.g. games/space-hop.",
+        type: "string",
+      },
+      game_slug: {
+        description: "Kebab-case game slug matching games/<slug>/.",
+        type: "string",
+      },
+      known_gaps: {
+        description:
+          "Anything the player or a human should scrutinize; empty when none.",
         items: { type: "string" },
         type: "array",
-      },
-      pushed: {
-        description:
-          "Whether push_branch succeeded; when false, the failure reason is in known_limitations.",
-        type: "boolean",
       },
       verification: {
         description: "Commands run and what they produced, exactly.",
@@ -87,12 +67,11 @@ export default defineAgent({
     },
     required: [
       "branch",
-      "base",
-      "pushed",
-      "change_summary",
+      "game_slug",
+      "game_path",
+      "files_changed",
       "verification",
-      "deviations",
-      "known_limitations",
+      "known_gaps",
     ],
     type: "object",
   },

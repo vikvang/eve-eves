@@ -11,7 +11,7 @@ import {
 
 /**
  * Fetches an existing factory branch and checks it out in the sandbox, for
- * revision runs that continue work the reviewer sent back.
+ * revision runs that continue work the player sent back.
  *
  * @remarks
  * The fetch targets the factory repository's URL literally with a credential
@@ -20,7 +20,7 @@ import {
  * git command line.
  */
 export default defineTool({
-  description: `Fetch an existing branch of the factory repository and check it out in ${REPO_DIR}. Use this on a revision run, when the reviewer's findings name a branch that already exists; fresh work starts from the default branch with plain git instead.`,
+  description: `Fetch an existing branch of the factory repository and check it out in ${REPO_DIR}. Use this on a revision run, when the player's findings name a branch that already exists; fresh work starts from the default branch with plain git instead.`,
   async execute(input, ctx) {
     const refusal = validateBranch(input.branch);
     if (refusal) {

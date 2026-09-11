@@ -31,11 +31,10 @@ export const GITHUB_WRITE_TOOLS = [
  *
  * @remarks
  * Read-only evals assert `notCalledTool` over this list alongside
- * {@link GITHUB_WRITE_TOOLS}, so a read-only turn that reaches for the shared
- * factory brain fails. `read_factory_brain` and `read_artifact` are
- * deliberately absent: reading the brain or a handoff artifact is always
- * allowed. The station-side `save_artifact` never mounts on the root, so it
- * does not belong here either.
+ * {@link GITHUB_WRITE_TOOLS}. `read_factory_brain` and `read_artifact` are
+ * deliberately absent. `save_artifact` is allowed on read-only turns when the
+ * orchestrator is only drafting notes, but out-of-scope prompts should not
+ * reach implementer; brain writes stay in this deny list.
  */
 export const ROOT_WRITE_TOOLS = ["update_factory_brain"] as const;
 
@@ -48,22 +47,13 @@ export const WRITE_TOOLS = [
 ] as const;
 
 /**
- * The four factory stations, in pipeline order.
+ * The two factory stations, in pipeline order.
  */
-export const STATIONS = [
-  "classifier",
-  "analyst",
-  "implementer",
-  "reviewer",
-] as const;
+export const STATIONS = ["implementer", "player"] as const;
 
 /**
  * Returns the order in which subagents were first delegated to during a run,
  * extracted from `subagent.called` stream events.
- *
- * @remarks
- * Station delegations are subagent calls, not tool calls, so ordering
- * assertions walk the subagent events rather than `t.toolOrder`.
  */
 export function subagentCallOrder(
   events: readonly MessageStreamEvent[]
