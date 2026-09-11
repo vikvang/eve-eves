@@ -24,9 +24,35 @@
       "evidence": "clean",
       "id": "no-console-errors",
       "passed": true
+    },
+    {
+      "evidence": "ArrowDown held 350ms while playing: seam extra.playerY 76 -> 130.99 (court bounds 6..146)",
+      "id": "player-input",
+      "passed": true
+    },
+    {
+      "evidence": "first point scored ~1.0s after serve: YOU 0 CPU 1 (seam score/extra.cpuScore incremented by one)",
+      "id": "score-event",
+      "passed": true
+    },
+    {
+      "evidence": "full unattended match with __seed=42: score sequence 0-1 0-2 0-3 0-4 0-5, then state=gameover outcome=lose, final YOU 0 - CPU 5, extra.targetScore=5; end.png captured on this screen",
+      "id": "terminal-on-target",
+      "passed": true
+    },
+    {
+      "evidence": "Z pressed on the gameover screen: state=playing with YOU 0 CPU 0",
+      "id": "retry-reset",
+      "passed": true
+    },
+    {
+      "evidence": "two fresh pages with __seed=42, no input: first serve dir/slope {dir:-1, slope:0.52982} identical in both runs (|d slope| < 1e-14); identical first point (CPU 1)",
+      "id": "seeded-serve",
+      "passed": true
     }
   ],
   "consoleErrors": [],
+  "notes": "Checks ready/title-state/start-playing/session-held/no-console-errors and screenshots title.png/gameplay.png were produced by `pnpm playtest pong --genre arcade` (exit 0). The remaining checks were produced by a supplemental non-committed Playwright script that served games/dist/pong, set window.__seed=42, and drove a full match to terminal via the window.__game seam; it also replaced end.png with a screenshot of the actual gameover screen (YOU LOSE, YOU 0 - CPU 5, ENTER title / Z retry). No console errors in the supplemental run.",
   "passed": true,
   "screenshots": [
     "games/pong/playtest/title.png",

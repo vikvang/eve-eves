@@ -207,6 +207,11 @@ export const registerGameScene = (
       moveBall(dt);
       playerHud.text = `YOU ${run.score}`;
       cpuHud.text = `CPU ${run.cpuScore}`;
+      // Expose positions through the seam so headless playtests can verify
+      // paddle input and seeded serve trajectories without pixel reads.
+      run.extra.playerY = player.pos.y;
+      run.extra.ballX = ball.pos.x;
+      run.extra.ballY = ball.pos.y;
     });
   });
 };
