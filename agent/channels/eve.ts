@@ -1,4 +1,4 @@
-import { type AuthFn, localDev, vercelOidc } from "eve/channels/auth";
+import { type AuthFn, localDev, none, vercelOidc } from "eve/channels/auth";
 import { eveChannel } from "eve/channels/eve";
 
 const localDevAuth = localDev();
@@ -27,10 +27,9 @@ const localDevUser: AuthFn<Request> = async (request) => {
  *
  * @remarks
  * This is the only integration surface: work arrives as a chat prompt. Auth is
- * `[localDevUser, vercelOidc()]` — local TUI and Vercel-issued OIDC for internal
- * callers. Neither admits anonymous browser traffic in production. Because the
- * session is attended (a person is watching the chat), approval cards park here
- * rather than being denied the way unattended webhook runs would be. See
- * `agent/lib/trust.ts` for the stamps approval policies read.
+ * Vercel OIDC and local TUI sessions resolve before the final `none()` fallback,
+ * which admits public browser traffic as an anonymous principal. No branch adds
+ * the `trusted` stamp, so browser sessions remain attended and untrusted. Approval
+ * cards continue to park before reversible writes.
  */
-export default eveChannel({ auth: [localDevUser, vercelOidc()] });
+export default eveChannel({ auth: [vercelOidc(), localDevUser, none()] });

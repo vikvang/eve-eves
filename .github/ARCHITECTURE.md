@@ -11,7 +11,7 @@ A map of how this agent is put together, for humans and AI agents working in the
 
 ## Overview
 
-This is a retro game factory built on the [eve](https://eve.dev) agent framework: the root agent is an orchestrator that takes a single chat prompt describing a thin, browser-only 2D retro game and moves it through two stations, each a declared subagent with its own instructions, sandbox, and tool surface: **implementer** (scaffolds and codes the game in its own checkout, runs the games repo checks, pushes `factory/game-<slug>`), and **player** (independent playtest on the pushed branch via `pnpm playtest`, different model vendor, up to 2 revision cycles). The finished product is a draft pull request on `FACTORY_REPO`. People stay in the loop where judgment lives: marking a PR ready stops the session to request approval, merging isn't in the tool surface at all. Chat sessions are attended and untrusted by default, so reversible GitHub writes and factory-brain updates park on approval cards in chat; draft PRs run without a card. The agent runs on Vercel, the same way locally (`eve dev`) and in production (`eve deploy`).
+This is a retro game factory built on the [eve](https://eve.dev) agent framework: the root agent is an orchestrator that takes a single chat prompt describing a thin, browser-only 2D retro game and moves it through two stations, each a declared subagent with its own instructions, sandbox, and tool surface: **implementer** (scaffolds and codes the game in its own checkout, runs the games repo checks, pushes `factory/game-<slug>`), and **player** (independent playtest on the pushed branch via `pnpm playtest`, different model vendor, up to 2 revision cycles). The finished product is a draft pull request on `FACTORY_REPO`. People stay in the loop where judgment lives: marking a PR ready stops the session to request approval, merging isn't in the tool surface at all. The public Next.js chat UI mounts the Eve routes on the same Vercel origin; anonymous browser sessions are attended and untrusted, so reversible GitHub writes and factory-brain updates park on actionable approval cards while draft PRs run without a card. The agent and web app deploy together through the Next.js Vercel build.
 
 eve discovers every capability from the filesystem under `agent/`. There is no central registry or wiring file: a tool's name is its filename, a subagent's name is its directory, an extension's namespace is its filename.
 
@@ -49,6 +49,10 @@ agent/
   skills/
     writing-quality/
     retro-design/           # placeholder filled by another builder
+web/
+  app/                      # Next.js app router, Foreman chat UI and retro styling
+  next.config.ts            # withEve({ eveRoot: ".." }) mounts the root agent at /eve/v1/*
+  package.json              # @foreman/web workspace scripts and dependencies
 evals/                      # routing/, safety/, pipeline/, helpers.ts, evals.config.ts
 ```
 
@@ -57,7 +61,8 @@ evals/                      # routing/, safety/, pipeline/, helpers.ts, evals.co
 | Component | Lives in | eve primitive | Responsibility |
 | --- | --- | --- | --- |
 | Orchestrator | `agent/agent.ts` + `instructions.ts` | Agent | Feasibility check, game brief, implementer → player loop (max 2 revises), draft PR; never writes game code itself |
-| Route auth | `agent/channels/eve.ts` | Channel | Only intake; localDevUser + vercelOidc; attended chat, untrusted so approvals park |
+| Route auth | `agent/channels/eve.ts` | Channel | Only intake; Vercel OIDC and local TUI before anonymous public fallback; every chat caller stays untrusted so approvals park |
+| Web chat | `web/` | Next.js + `eve/next` | Public same-origin UI; streams messages, displays tool/station state, and answers Eve continuation cards |
 | GitHub tools | `agent/extensions/github.ts` | Extension | `github__*` reads, triage writes, PR authoring; draft PR ungated; ship parks |
 | Trust authority | `agent/lib/trust.ts` | Library | Trusted / autonomous / schedule predicates for approval policies |
 | implementer | `agent/subagents/implementer/` | Subagent | Scaffold, implement, verify, push `factory/game-<slug>` |
@@ -72,7 +77,7 @@ Channels are I/O boundaries. Tools run in the app runtime; station git and playt
 
 ## Data flow
 
-1. **Chat prompt:** a person sends a game idea on the eve channel. Foreman reads preferences and the factory brain, loads retro-design / writing-quality as needed, and runs a feasibility check.
+1. **Chat prompt:** a person sends a game idea through the public web app, dev TUI, or another Eve client. Foreman reads preferences and the factory brain, loads retro-design / writing-quality as needed, and runs a feasibility check. Anonymous web callers have no preferences.
 2. **Out of scope:** 3D, multiplayer, backend, etc. Foreman refuses, offers a smaller alternative, and does not call stations.
 3. **In scope:** Foreman writes a one-page brief, saves it as artifact kind `game-brief`, delegates to implementer with the id, then to player with branch + slug.
 4. **Revision:** player `revise` loops back to implementer at most twice, then player again.
@@ -97,14 +102,15 @@ No application database.
 
 ## Deployment & infrastructure
 
-- **Platform:** Vercel. Deploy with `eve deploy`.
+- **Platform:** one Vercel project with Root Directory `web`. Deploy from the repository root with `pnpm deploy`; `withEve` builds the Next app and an Eve service that receives `/eve/v1/*`.
 - **Connectors:** GitHub Connect only. App needs contents/issues/pull requests on `FACTORY_REPO`.
 - **Environment:** `GITHUB_CONNECTOR`, `FACTORY_REPO` (required), optional `FACTORY_SETUP_COMMAND`, `FACTORY_BRANCH_PREFIX`, `FACTORY_BOT_NAME`.
-- **Local development:** `pnpm dev`; chat is untrusted so GitHub writes wait for approval in the TUI.
+- **Local development:** `pnpm dev` starts the Eve TUI. `pnpm dev:web` starts the public Next.js chat and its same-origin Eve routes. Both chat entrypoints are untrusted, so GitHub writes wait for approval.
 
 ## Security considerations
 
-- **Trust at dispatch.** Eve chat does not stamp `trusted`; sessions are attended so approval cards park on chat. Draft PRs are ungated; ship actions always park; autonomous principal is unused without label intake but kept for policy compatibility.
+- **Trust at dispatch.** The channel checks Vercel OIDC and local development first, then uses Eve's `none()` provider for public browsers. `none()` creates an anonymous principal with no `trusted` attribute. Sessions are attended so approval cards park on the TUI or web UI. Draft PRs are ungated; ship actions always park; autonomous principal is unused without label intake but kept for policy compatibility.
+- **Public endpoint exposure.** Anonymous chat can consume model, sandbox, and GitHub API capacity. Put Vercel Deployment Protection in front of the project or replace `none()` with application authentication when a public endpoint is not appropriate.
 - **Stations hold no approvable tools.** `push_branch` and playtest tools are inert by construction (validated branch/slug, feature branches only).
 - **Git credentials never enter a sandbox.** Literal `REMOTE_URL` + `brokerPolicy`.
 - **Artifact-id containment** and **factory-brain** keying unchanged from the software-factory template.
@@ -112,7 +118,7 @@ No application database.
 
 ## Development & testing
 
-- `pnpm dev`, `pnpm typecheck`, `pnpm check` / `pnpm fix`, `npx eve info`, `pnpm validate`.
+- `pnpm dev`, `pnpm dev:web`, `pnpm typecheck`, `pnpm check` / `pnpm fix`, `pnpm build:web`, `npx eve info`, `pnpm validate`.
 - Evals: `pnpm eval --tag fast`; `pnpm eval pipeline/full-pipeline` pushes a real branch.
 
 ## Glossary

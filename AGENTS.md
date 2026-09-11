@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository.
 
 ## Project overview
 
-The eve retro game factory: Foreman, an orchestrator agent built on the [eve](https://eve.dev) framework that turns a single chat prompt into a draft pull request adding a thin, browser-only 2D retro game on the configured repository (`FACTORY_REPO`). Work arrives only from the default eve chat channel. The orchestrator checks feasibility, writes a one-page game brief (handoff artifact kind `game-brief`), then moves the item through two declared subagent stations in order: **implementer** (scaffolds `games/<slug>/` from `_template`, codes, verifies, pushes `factory/game-<slug>`) → **player** (independent playtest on the pushed branch via `pnpm playtest`, different model vendor, max 2 revision cycles). The orchestrator then opens a draft PR whose body includes the brief summary, playtest checks, screenshot paths, and a preview URL placeholder. Marking the PR ready parks on human approval; merging is not in the tool surface. Per-user preferences live in **Vercel Blob**, alongside a shared, per-repo **factory brain** under a reserved Blob prefix, readable by every run but writable only by trusted callers (chat stays untrusted by default so writes park on approval), and **handoff artifacts** under the reserved `artifacts/` prefix (`game-brief`, `playtest-report`). The pipeline lives in `agent/instructions.ts`.
+The eve retro game factory: Foreman, an orchestrator agent built on the [eve](https://eve.dev) framework that turns a single chat prompt into a draft pull request adding a thin, browser-only 2D retro game on the configured repository (`FACTORY_REPO`). Work arrives only from the default eve chat channel, which the public Next.js web app in `web/` mounts on its own origin. The orchestrator checks feasibility, writes a one-page game brief (handoff artifact kind `game-brief`), then moves the item through two declared subagent stations in order: **implementer** (scaffolds `games/<slug>/` from `_template`, codes, verifies, pushes `factory/game-<slug>`) → **player** (independent playtest on the pushed branch via `pnpm playtest`, different model vendor, max 2 revision cycles). The orchestrator then opens a draft PR whose body includes the brief summary, playtest checks, screenshot paths, and a preview URL placeholder. Marking the PR ready parks on human approval; merging is not in the tool surface. Per-user preferences live in **Vercel Blob**, alongside a shared, per-repo **factory brain** under a reserved Blob prefix, readable by every run but writable only by trusted callers (chat stays untrusted by default so writes park on approval), and **handoff artifacts** under the reserved `artifacts/` prefix (`game-brief`, `playtest-report`). The pipeline lives in `agent/instructions.ts`.
 
 The whole agent is defined under `agent/`. eve discovers capabilities from the filesystem. See [`ARCHITECTURE.md`](./.github/ARCHITECTURE.md) for the component map, data flow, trust model, and boundaries.
 
@@ -14,16 +14,18 @@ The whole agent is defined under `agent/`. eve discovers capabilities from the f
 pnpm install        # install dependencies (Node 24.x)
 pnpm exec playwright install chromium  # browser binary for playtests
 pnpm dev            # eve dev — local TUI; run /model once to link a model provider
+pnpm dev:web        # Next.js public web chat plus same-origin Eve routes
 pnpm typecheck      # tsc for agent + games/_kit + _template + _playtest
 pnpm check          # ultracite (Biome) lint + format check
 pnpm fix            # ultracite (Biome) auto-fix
 pnpm build          # eve build (agent)
+pnpm build:web      # Eve build, then production Next.js build
 pnpm build:games    # Vite-build every game into games/dist/<slug>/
 pnpm test           # Vitest
 pnpm playtest <slug> [--genre platformer|shmup|arcade|puzzle]
 pnpm new-game <slug>
 pnpm eval           # eve eval — run the evals suite (see tags below; costs real tokens)
-eve deploy          # deploy to Vercel production (use this, not raw `vercel deploy`)
+pnpm deploy         # deploy the web app and mounted Eve service to Vercel production
 npx eve info        # print the discovered surface + discovery diagnostics
 pnpm validate       # check + typecheck + eve info in one command
 ```
@@ -37,7 +39,7 @@ pnpm validate       # check + typecheck + eve info in one command
 - Authored slots: `agent/agent.ts` (model + session budget), `agent/instructions.ts` (`defineInstructions`, the orchestrator prompt; resolved at build time, injecting `FACTORY_REPO`), `agent/tools/*.ts` (`defineTool`), `agent/extensions/*.ts`, `agent/channels/*.ts`, `agent/skills/<name>/SKILL.md`, `agent/subagents/<id>/agent.ts` (`defineAgent`), per-agent `sandbox.ts`.
 - **Model assignments are centralized** in `agent/lib/models.ts` (the `MODELS` map). Every `agent.ts` reads its entry from there (`model: MODELS.<agent>`) instead of hardcoding a gateway id, so a model swap is a one-line edit in that file. One split is deliberate: `implementer` runs the strongest coding model on a different vendor than `player`, so the playtest stays independent; keep those two on different vendors.
 - **Extensions:** `agent/extensions/<ns>.ts` mounts a prebuilt eve extension; the filename is the namespace and its tools appear to the model as `<ns>__<tool>` (here: `github__*` from `@github-tools/eve-extension`). Config keys (`include`, `requireApproval`) use bare tool names.
-- **Channels:** only `eve` (route-auth channel for chat, reached from the web chat UI, the dev TUI, or any HTTP client). No other channels are mounted. The github extension remains on the root for opening draft PRs; approvals park on chat.
+- **Channels:** only `eve` (route-auth channel for chat, reached from the public web chat UI, the dev TUI, or any HTTP client). `vercelOidc()` and `localDevUser` resolve trusted infrastructure and development callers before final `none()` admits public browsers as anonymous, untrusted callers. No other channels are mounted. The github extension remains on the root for opening draft PRs; approvals park on chat.
 - **Subagents are the stations.** Declared under `agent/subagents/<id>/`; `description` is required (the routing hint) and each station's `agent.ts` also declares an `outputSchema`, which makes every delegation run in **task mode**: structured output, no parking. A declared subagent runs in a fresh child session and **inherits nothing** from the root (no instructions, skills, connections, tools, or sandbox), so the orchestrator packs everything into the `message`, and any capability a station needs lives in the station's own directory (its `sandbox.ts`, its `tools/`). Long documents travel between stations as **handoff artifacts**: the orchestrator saves the game brief with `save_artifact`, stations open it with `read_artifact`, and the orchestrator relays only the id (the factories live in `agent/lib/artifacts/`).
 - **Approval-gated tools must not live in task-mode children.** A task-mode session cannot park, so a station tool that returned `user-approval` would strand the run. Anything needing approval belongs on the root (the `github` extension and `update_factory_brain`); station side effects must be inert by construction, like `push_branch` (feature branches only, validated names, brokered credential).
 - **`agent/lib/trust.ts` is the single trust authority.** The eve chat channel leaves callers untrusted by default so reversible writes and brain updates park on chat approval cards; draft PRs still run without a card. Approval policies in `agent/lib/github/approval.ts` read the stamps and return `not-applicable` / `user-approval` / `denied`. A new capability never invents its own caller check; gate on the existing predicates.
@@ -64,13 +66,13 @@ pnpm validate       # check + typecheck + eve info in one command
 - If you ever build a `RegExp` from data, escape it (literal match) and bound the input length.
 - Gate irreversible or high-impact actions behind `approval` (here: `clear_user_preferences`, plus the ship-gate policies on the GitHub extension).
 - Every reserved Blob prefix is declared in the namespace registry in `agent/lib/blob.ts`, alongside the shared read/write/delete document helpers all Blob tools go through. Any general-purpose Blob tool added later must consult the registry's guards before acting, so a managed document can't be reached through a generic file operation; add a namespace there, never as a loose constant in a feature module.
-- For per-user storage, derive the key from the resolved principal (`ctx.session.auth.current`), never from model input — see `agent/lib/user-preferences.ts`. The preference files live under the reserved `user-preferences/` Blob prefix, reachable only through the principal-scoped preference tools.
+- For per-user storage, derive the key from the resolved principal (`ctx.session.auth.current`), never from model input — see `agent/lib/user-preferences.ts`. The preference files live under the reserved `user-preferences/` Blob prefix, reachable only through the principal-scoped preference tools. The public `none()` caller is anonymous rather than a user, so its preference calls must return the documented no-preferences result instead of addressing shared storage.
 - The shared **factory brain** derives its key from `FACTORY_REPO`, never from model input or a caller principal — see `agent/lib/factory-brain.ts`. It lives under the reserved `factory-brain/` Blob prefix, reachable only through `read_factory_brain` / `update_factory_brain`; writes are gated by `factoryBrainPolicy` (unattended runs denied, trusted callers direct, everyone else parks).
 - **Handoff artifacts** live under the reserved `artifacts/` Blob prefix, reachable only through `save_artifact` / `read_artifact` — see `agent/lib/artifacts/config.ts`. Ids are model-supplied on read, so every id must pass the anchored `ARTIFACT_ID_PATTERN` (no dots or slashes) before it is interpolated into a Blob key; that is what keeps a station from addressing the brain or a preference file through the artifact tools. Saves never overwrite and are size-bounded, which keeps both tools inert enough to live in task-mode stations without approval.
 
 ## Before committing
 
-- `pnpm validate` passes (Ultracite check, `tsc`, and `eve info` with 0 errors / 0 warnings).
+- `pnpm validate` passes (Ultracite check, agent and web `tsc`, and `eve info` with 0 errors / 0 warnings).
 - No secrets, `node_modules`, or build output (`.eve`, `.vercel`, `.output`) staged.
 
 ## Games factory target (`games/`)
