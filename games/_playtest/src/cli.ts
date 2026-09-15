@@ -8,7 +8,8 @@ import {
 } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium, type Page } from "playwright";
+import type { Page } from "playwright";
+import { launchChromium } from "./browser.js";
 import { arcadeScript } from "./genres/arcade.js";
 import { platformerScript } from "./genres/platformer.js";
 import { puzzleScript } from "./genres/puzzle.js";
@@ -142,7 +143,7 @@ const main = async () => {
   const consoleErrors: string[] = [];
   const screenshots: string[] = [];
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchChromium();
   const page = await browser.newPage({ viewport: { height: 540, width: 960 } });
 
   page.on("console", (msg) => {

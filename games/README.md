@@ -27,7 +27,9 @@ pnpm typecheck
 pnpm check
 ```
 
-Install Playwright chromium once: `pnpm exec playwright install chromium`.
+The playtest harness downloads its matching Playwright chromium build on
+first run if it is missing. To pre-install it explicitly, run
+`pnpm playtest:setup` (alias for `playwright install chromium`).
 
 ## Design defaults
 

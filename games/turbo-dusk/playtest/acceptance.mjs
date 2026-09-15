@@ -13,12 +13,93 @@
  *
  * Writes playtest/acceptance.json and exits non-zero on any failed check.
  */
+import { spawnSync } from "node:child_process";
 import { createReadStream, existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+
+const resolveFromHere = createRequire(import.meta.url);
+
+/**
+ * Launch headless chromium, self-healing the two common fresh-sandbox
+ * failures (missing browser download, missing host shared libraries) so this
+ * script works after a plain `pnpm install`.
+ */
+const runPlaywrightCli = (args, hint) => {
+  const cli = path.join(
+    path.dirname(resolveFromHere.resolve("playwright/package.json")),
+    "cli.js"
+  );
+  const result = spawnSync(process.execPath, [cli, ...args], {
+    stdio: "inherit",
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      `\`playwright ${args.join(" ")}\` failed (exit ${String(result.status ?? result.signal)}). ${hint}`
+    );
+  }
+};
+
+const attemptLaunch = async () => {
+  try {
+    return { browser: await chromium.launch({ headless: true }) };
+  } catch (error) {
+    return { error };
+  }
+};
+
+const messageOf = (error) =>
+  error instanceof Error ? error.message : String(error);
+
+const MISSING_EXECUTABLE =
+  /executable doesn't exist|please run the following command|playwright install/i;
+const MISSING_HOST_DEPS =
+  /host system is missing dependencies|error while loading shared libraries/i;
+
+const launchChromium = async () => {
+  const first = await attemptLaunch();
+  if (first.browser) {
+    return first.browser;
+  }
+  const firstMessage = messageOf(first.error);
+  if (MISSING_EXECUTABLE.test(firstMessage)) {
+    console.error(
+      "acceptance: Playwright chromium missing; downloading it now..."
+    );
+    runPlaywrightCli(
+      ["install", "chromium"],
+      "Run `pnpm exec playwright install chromium` manually and retry."
+    );
+  } else if (!MISSING_HOST_DEPS.test(firstMessage)) {
+    throw first.error;
+  }
+  const second = await attemptLaunch();
+  if (second.browser) {
+    return second.browser;
+  }
+  if (!MISSING_HOST_DEPS.test(messageOf(second.error))) {
+    throw second.error;
+  }
+  console.error(
+    "acceptance: chromium host libraries missing; running `playwright install-deps chromium`..."
+  );
+  runPlaywrightCli(
+    ["install-deps", "chromium"],
+    "Run `sudo pnpm exec playwright install-deps chromium` manually and retry."
+  );
+  const third = await attemptLaunch();
+  if (third.browser) {
+    return third.browser;
+  }
+  throw new Error(
+    `Chromium still fails to launch after installing browsers and host dependencies. Last error: ${messageOf(third.error)}`,
+    { cause: third.error }
+  );
+};
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
@@ -74,7 +155,7 @@ const main = async () => {
     );
   }
   const server = await serveStatic(distDir);
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchChromium();
   const page = await browser.newPage({ viewport: { height: 540, width: 960 } });
 
   const checks = [];

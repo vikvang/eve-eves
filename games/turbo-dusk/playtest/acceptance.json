@@ -21,7 +21,7 @@
       "passed": true
     },
     {
-      "evidence": "score 15 -> 117 (can pays +100), fuel 13.616799999999984 -> 15.933499999999981",
+      "evidence": "score 15 -> 117 (can pays +100), fuel 13.650099999999984 -> 15.983399999999982",
       "id": "fuel-raises-score",
       "passed": true
     },

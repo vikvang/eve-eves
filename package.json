@@ -21,6 +21,7 @@
     "fix": "ultracite fix",
     "new-game": "tsx scripts/games/new-game.ts",
     "playtest": "tsx games/_playtest/src/cli.ts",
+    "playtest:setup": "playwright install chromium",
     "start": "eve start",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p games/_kit/tsconfig.json --noEmit && tsc -p games/_template/tsconfig.json --noEmit && tsc -p games/_playtest/tsconfig.json --noEmit && pnpm --filter @foreman/web typecheck",

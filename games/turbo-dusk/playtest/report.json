@@ -16,7 +16,7 @@
       "passed": true
     },
     {
-      "evidence": "state=playing score=83",
+      "evidence": "state=playing score=82",
       "id": "session-held",
       "passed": true
     },
