@@ -1,24 +1,26 @@
 import { type PaletteMap, spriteFromGrid } from "@games/kit";
 
 /**
- * Shared 12x14 top-down car silhouette. Recolored per palette map for the
+ * Shared 14x16 top-down car silhouette. Recolored per palette map for the
  * player roadster and the traffic family.
  */
 const CAR_GRID = [
-  "....KKKK....",
-  "...KHOOHK...",
-  "..KKOOOOKK..",
-  ".KKKOOOOKKK.",
-  ".KKKOWWOKKK.",
-  "..KOWWWWOK..",
-  "..KOOOOOOK..",
-  "..KOOOOOOK..",
-  ".KKKOOOOKKK.",
-  ".KKKOOOOKKK.",
-  "..KOOOOOOK..",
-  "..KOHOOHOK..",
-  "...KOOOOK...",
-  "....KKKK....",
+  "....KKKKKK....",
+  "...KHOOOOHK...",
+  "..KKOOOOOOKK..",
+  ".KKOOOOOOOOKK.",
+  ".KKOOWWWWOOKK.",
+  "..KOWWWWWWOK..",
+  "..KOOWWWWOOK..",
+  "..KOOOOOOOOK..",
+  "..KOOOOOOOOK..",
+  ".KKOOOOOOOOKK.",
+  ".KKOOOOOOOOKK.",
+  "..KOOOOOOOOK..",
+  "..KOOWWWWOOK..",
+  "..KOHOOOOHOK..",
+  "...KOOOOOOK...",
+  "....KKKKKK....",
 ];
 
 const roadsterMap: PaletteMap = {

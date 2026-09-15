@@ -1,0 +1,52 @@
+{
+  "checks": [
+    {
+      "evidence": "state=title",
+      "id": "title-ready",
+      "passed": true
+    },
+    {
+      "evidence": "state=playing lives=3 checkpoint=0",
+      "id": "start-to-playing",
+      "passed": true
+    },
+    {
+      "evidence": "playerX 160 -> 112 (road bounds 112..208)",
+      "id": "steer-changes-position",
+      "passed": true
+    },
+    {
+      "evidence": "boosting=true speed=210 (cruise 120)",
+      "id": "boost-activates",
+      "passed": true
+    },
+    {
+      "evidence": "score 15 -> 117 (can pays +100), fuel 13.616799999999984 -> 15.933499999999981",
+      "id": "fuel-raises-score",
+      "passed": true
+    },
+    {
+      "evidence": "lives 3 -> 2",
+      "id": "traffic-costs-life",
+      "passed": true
+    },
+    {
+      "evidence": "state=gameover after drainFuel",
+      "id": "reach-gameover",
+      "passed": true
+    },
+    {
+      "evidence": "state=win checkpoint=3",
+      "id": "reach-win",
+      "passed": true
+    },
+    {
+      "evidence": "clean",
+      "id": "no-console-errors",
+      "passed": true
+    }
+  ],
+  "consoleErrors": [],
+  "passed": true,
+  "slug": "turbo-dusk"
+}

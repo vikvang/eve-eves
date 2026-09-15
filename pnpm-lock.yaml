@@ -123,6 +123,9 @@ importers:
         specifier: 4000.0.0-alpha.27.1
         version: 4000.0.0-alpha.27.1
     devDependencies:
+      playwright:
+        specifier: ^1.55.0
+        version: 1.63.0
       typescript:
         specifier: ^5.9.2
         version: 5.9.3

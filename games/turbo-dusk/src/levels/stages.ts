@@ -7,6 +7,8 @@ export type StageConfig = {
   edge: number;
   /** Sweetie-16 index for the lane dashes. */
   dash: number;
+  /** Sweetie-16 index for roadside scrub (bushes, rocks). */
+  scrub: number;
   /** Fuel timer granted at the start of the stage, in seconds. */
   fuelTime: number;
   /** Seconds of driving before the checkpoint gate appears. */
@@ -28,6 +30,7 @@ export const STAGES: StageConfig[] = [
     gateDelay: 10,
     ground: 1,
     name: "SUNSET STRAIGHT",
+    scrub: 6,
     trafficInterval: 1.7,
     trafficSpeed: 55,
   },
@@ -39,6 +42,7 @@ export const STAGES: StageConfig[] = [
     gateDelay: 10,
     ground: 3,
     name: "DESERT BEND",
+    scrub: 15,
     trafficInterval: 1.3,
     trafficSpeed: 65,
   },
@@ -50,6 +54,7 @@ export const STAGES: StageConfig[] = [
     gateDelay: 10,
     ground: 0,
     name: "NIGHT APPROACH",
+    scrub: 14,
     trafficInterval: 1,
     trafficSpeed: 80,
   },

@@ -85,7 +85,7 @@ export const registerGameScene = (
     const DASH_COUNT = 8;
     for (let i = 0; i < DASH_COUNT; i++) {
       const dash = k.add([
-        k.rect(3, 12),
+        k.rect(4, 12),
         k.pos(158, i * DASH_GAP - 20),
         k.color(...hexToRgb(SWEETIE16[stage.dash] ?? SWEETIE16[4])),
         k.z(2),
@@ -120,6 +120,55 @@ export const registerGameScene = (
           }
         });
       }
+    }
+
+    // Scrolling curb rumble dashes over the edge stripes.
+    const CURB_GAP = 24;
+    const CURB_COUNT = 9;
+    for (const edgeX of [ROAD_LEFT - 3, ROAD_RIGHT]) {
+      for (let i = 0; i < CURB_COUNT; i++) {
+        const curb = k.add([
+          k.rect(3, 10),
+          k.pos(edgeX, i * CURB_GAP - 20),
+          k.color(...hexToRgb(SWEETIE16[12])),
+          k.z(2),
+        ]);
+        curb.onUpdate(() => {
+          if (frozen()) {
+            return;
+          }
+          curb.pos.y += relGround() * k.dt();
+          if (curb.pos.y > 184) {
+            curb.pos.y -= CURB_COUNT * CURB_GAP;
+          }
+        });
+      }
+    }
+
+    // Scrolling roadside scrub: bushes and rocks flanking the highway.
+    const SCRUB_COUNT = 8;
+    const SCRUB_GAP = 26;
+    for (let i = 0; i < SCRUB_COUNT; i++) {
+      const onLeft = i % 2 === 0;
+      const zoneX = onLeft
+        ? 10 + rng() * (ROAD_LEFT - 40)
+        : ROAD_RIGHT + 16 + rng() * (304 - ROAD_RIGHT - 16);
+      const wide = i % 3 === 0;
+      const scrub = k.add([
+        k.rect(wide ? 9 : 6, wide ? 5 : 4),
+        k.pos(zoneX, i * SCRUB_GAP - 12),
+        k.color(...hexToRgb(SWEETIE16[stage.scrub] ?? SWEETIE16[14])),
+        k.z(1),
+      ]);
+      scrub.onUpdate(() => {
+        if (frozen()) {
+          return;
+        }
+        scrub.pos.y += relGround() * k.dt();
+        if (scrub.pos.y > 184) {
+          scrub.pos.y -= SCRUB_COUNT * SCRUB_GAP;
+        }
+      });
     }
 
     const player = spawnPlayerCar(k, run, { isFrozen: frozen });
